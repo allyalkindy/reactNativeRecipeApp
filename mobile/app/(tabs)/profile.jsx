@@ -56,11 +56,9 @@ export default function Profile() {
     try {
       // Clear AsyncStorage
       await AsyncStorage.removeItem(USER_NAME_KEY);
-      
       // Sign out from Clerk
       await signOut();
-      
-      // Force navigation to sign-in screen
+      // Force navigation to sign-in screen after signOut completes
       router.replace('/(auth)/sign-in');
     } catch (error) {
       console.error('Error signing out:', error);
