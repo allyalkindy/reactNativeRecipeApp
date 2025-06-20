@@ -17,6 +17,7 @@ const SideMenu = ({ visible, onClose }) => {
     { icon: 'information-circle-outline', label: 'About', onPress: () => handleMenuItemPress('about') },
     { icon: 'mail-outline', label: 'Contact', onPress: () => handleMenuItemPress('contact') },
     { icon: 'chatbubble-outline', label: 'Feedback & Complaints', onPress: () => handleMenuItemPress('feedback') },
+    { icon: 'lock-closed-outline', label: 'Privacy Policy', onPress: () => handleMenuItemPress('privacy-policy') },
   ];
 
   const handleMenuItemPress = (screen) => {
@@ -39,6 +40,9 @@ const SideMenu = ({ visible, onClose }) => {
         break;
       case 'feedback':
         router.push('/feedback');
+        break;
+      case 'privacy-policy':
+        router.push('/privacy-policy');
         break;
     }
   };

@@ -9,11 +9,14 @@ import { Ionicons } from "@expo/vector-icons";
 import CategoryFilter from "../../components/CategoryFilter";
 import RecipeCard from "../../components/RecipeCard";
 import LoadingSpinner from "../../components/LoadingSpinner";
+import { useSettings } from '../../context/SettingsContext';
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const HomeScreen = () => {
   const router = useRouter();
+  const { getTheme } = useSettings();
+  const theme = getTheme();
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [recipes, setRecipes] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -89,14 +92,14 @@ const HomeScreen = () => {
   if (loading && !refreshing) return <LoadingSpinner message="Loading delicions recipes..." />;
 
   return (
-    <View style={homeStyles.container}>
+    <View style={[homeStyles.container, { backgroundColor: theme.background }]}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor={COLORS.primary}
+            tintColor={theme.primary}
           />
         }
         contentContainerStyle={homeStyles.scrollContent}
@@ -143,27 +146,27 @@ const HomeScreen = () => {
                 />
                 <View style={homeStyles.featuredOverlay}>
                   <View style={homeStyles.featuredBadge}>
-                    <Text style={homeStyles.featuredBadgeText}>Featured</Text>
+                    <Text style={[homeStyles.featuredBadgeText, { color: theme.white }]}>Featured</Text>
                   </View>
 
                   <View style={homeStyles.featuredContent}>
-                    <Text style={homeStyles.featuredTitle} numberOfLines={2}>
+                    <Text style={[homeStyles.featuredTitle, { color: theme.white }]} numberOfLines={2}>
                       {featuredRecipe.title}
                     </Text>
 
                     <View style={homeStyles.featuredMeta}>
                       <View style={homeStyles.metaItem}>
-                        <Ionicons name="time-outline" size={16} color={COLORS.white} />
-                        <Text style={homeStyles.metaText}>{featuredRecipe.cookTime}</Text>
+                        <Ionicons name="time-outline" size={16} color={theme.white} />
+                        <Text style={[homeStyles.metaText, { color: theme.white }]}>{featuredRecipe.cookTime}</Text>
                       </View>
                       <View style={homeStyles.metaItem}>
-                        <Ionicons name="people-outline" size={16} color={COLORS.white} />
-                        <Text style={homeStyles.metaText}>{featuredRecipe.servings}</Text>
+                        <Ionicons name="people-outline" size={16} color={theme.white} />
+                        <Text style={[homeStyles.metaText, { color: theme.white }]}>{featuredRecipe.servings}</Text>
                       </View>
                       {featuredRecipe.area && (
                         <View style={homeStyles.metaItem}>
-                          <Ionicons name="location-outline" size={16} color={COLORS.white} />
-                          <Text style={homeStyles.metaText}>{featuredRecipe.area}</Text>
+                          <Ionicons name="location-outline" size={16} color={theme.white} />
+                          <Text style={[homeStyles.metaText, { color: theme.white }]}>{featuredRecipe.area}</Text>
                         </View>
                       )}
                     </View>
@@ -184,7 +187,7 @@ const HomeScreen = () => {
 
         <View style={homeStyles.recipesSection}>
           <View style={homeStyles.sectionHeader}>
-            <Text style={homeStyles.sectionTitle}>{selectedCategory}</Text>
+            <Text style={[homeStyles.sectionTitle, { color: theme.text }]}>{selectedCategory}</Text>
           </View>
 
           {recipes.length > 0 ? (
@@ -200,9 +203,9 @@ const HomeScreen = () => {
             />
           ) : (
             <View style={homeStyles.emptyState}>
-              <Ionicons name="restaurant-outline" size={64} color={COLORS.textLight} />
-              <Text style={homeStyles.emptyTitle}>No recipes found</Text>
-              <Text style={homeStyles.emptyDescription}>Try a different category</Text>
+              <Ionicons name="restaurant-outline" size={64} color={theme.textLight} />
+              <Text style={[homeStyles.emptyTitle, { color: theme.text }]}>No recipes found</Text>
+              <Text style={[homeStyles.emptyDescription, { color: theme.text }]}>Try a different category</Text>
             </View>
           )}
         </View>

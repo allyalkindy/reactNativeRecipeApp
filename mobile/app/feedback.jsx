@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { COLORS } from '../constants/colors';
+import { useSettings } from '../context/SettingsContext';
 import SafeScreen from '../components/SafeScreen';
 import BackButton from '../components/BackButton';
 
@@ -23,6 +23,9 @@ const Feedback = () => {
   const [showNewPostModal, setShowNewPostModal] = useState(false);
   const [newPost, setNewPost] = useState('');
   const [feedbackPosts, setFeedbackPosts] = useState([]);
+  const [postType, setPostType] = useState('Feedback'); // 'Feedback' or 'Complaint'
+  const { getTheme } = useSettings();
+  const theme = getTheme();
 
   // Load feedback posts when component mounts
   useEffect(() => {
@@ -73,17 +76,14 @@ const Feedback = () => {
         const newFeedback = {
           id: Date.now(), // Use timestamp as ID for uniqueness
           user: 'Current User',
-          type: 'Feedback',
+          type: postType,
           content: newPost.trim(),
           timestamp: 'Just now',
         };
-        
         const updatedPosts = [newFeedback, ...feedbackPosts];
         setFeedbackPosts(updatedPosts);
-        
         // Save to AsyncStorage
         await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updatedPosts));
-        
         setShowNewPostModal(false);
         setNewPost('');
       } catch (error) {
@@ -93,26 +93,25 @@ const Feedback = () => {
   };
 
   const renderPost = (post) => (
-    <View key={post.id} style={styles.postCard}>
+    <View key={post.id} style={[styles.postCard, { backgroundColor: theme.card, shadowColor: theme.shadow }] }>
       <View style={styles.postHeader}>
         <View style={styles.userInfo}>
-          <View style={styles.avatarContainer}>
-            <Ionicons name="person-circle" size={40} color={COLORS.primary} />
+          <View style={[styles.avatarContainer, { backgroundColor: theme.background }] }>
+            <Ionicons name="person-circle" size={40} color={theme.primary} />
           </View>
           <View>
-            <Text style={styles.userName}>{post.user}</Text>
-            <Text style={styles.timestamp}>{post.timestamp}</Text>
+            <Text style={[styles.userName, { color: theme.text }]}>{post.user}</Text>
+            <Text style={[styles.timestamp, { color: theme.textLight }]}>{post.timestamp}</Text>
           </View>
         </View>
         <View style={[
           styles.typeBadge,
-          { backgroundColor: post.type === 'Feedback' ? COLORS.success : COLORS.error }
+          { backgroundColor: post.type === 'Feedback' ? theme.success : theme.error }
         ]}>
-          <Text style={styles.typeText}>{post.type}</Text>
+          <Text style={[styles.typeText, { color: theme.white }]}>{post.type}</Text>
         </View>
       </View>
-
-      <Text style={styles.postContent}>{post.content}</Text>
+      <Text style={[styles.postContent, { color: theme.text }]}>{post.content}</Text>
     </View>
   );
 
@@ -121,21 +120,30 @@ const Feedback = () => {
       <BackButton />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.container}
+        style={[styles.container, { backgroundColor: theme.background }]}
       >
         <View style={styles.header}>
-          <Text style={styles.title}>Feedback & Complaints</Text>
+          <Text style={[styles.title, { color: theme.text }]}>Feedback & Complaints</Text>
         </View>
 
-        <TouchableOpacity
-          style={styles.newPostButton}
-          onPress={() => setShowNewPostModal(true)}
-        >
-          <Ionicons name="add-circle" size={24} color={COLORS.white} />
-          <Text style={styles.newPostButtonText}>Add Feedback</Text>
-        </TouchableOpacity>
+        <View style={{ flexDirection: 'row', gap: 12, marginHorizontal: 20, marginBottom: 20 }}>
+          <TouchableOpacity
+            style={[styles.newPostButton, { backgroundColor: theme.primary, shadowColor: theme.shadow, flex: 1 }]}
+            onPress={() => { setShowNewPostModal(true); setPostType('Feedback'); }}
+          >
+            <Ionicons name="add-circle" size={24} color={theme.white} />
+            <Text style={[styles.newPostButtonText, { color: theme.white }]}>Add Feedback</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.newPostButton, { backgroundColor: theme.error, shadowColor: theme.shadow, flex: 1 }]}
+            onPress={() => { setShowNewPostModal(true); setPostType('Complaint'); }}
+          >
+            <Ionicons name="alert-circle" size={24} color={theme.white} />
+            <Text style={[styles.newPostButtonText, { color: theme.white }]}>Add Complaint</Text>
+          </TouchableOpacity>
+        </View>
 
-        <ScrollView style={styles.postsContainer}>
+        <ScrollView style={[styles.postsContainer, { backgroundColor: theme.background }] }>
           {feedbackPosts.map(renderPost)}
         </ScrollView>
 
@@ -147,7 +155,7 @@ const Feedback = () => {
         >
           <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            style={styles.modalContainer}
+            style={[styles.modalContainer, { backgroundColor: 'rgba(0,0,0,0.5)' }]}
           >
             <TouchableOpacity
               style={styles.modalOverlay}
@@ -157,24 +165,26 @@ const Feedback = () => {
                 setShowNewPostModal(false);
               }}
             >
-              <View style={styles.modalContent}>
+              <View style={[styles.modalContent, { backgroundColor: theme.card }] }>
                 <View style={styles.modalHeader}>
-                  <Text style={styles.modalTitle}>Add Feedback</Text>
+                  <Text style={[styles.modalTitle, { color: theme.text }]}>
+                    {postType === 'Feedback' ? 'Add Feedback' : 'Add Complaint'}
+                  </Text>
                   <TouchableOpacity
                     onPress={() => setShowNewPostModal(false)}
                     style={styles.closeButton}
                   >
-                    <Ionicons name="close" size={24} color={COLORS.text} />
+                    <Ionicons name="close" size={24} color={theme.text} />
                   </TouchableOpacity>
                 </View>
 
                 <TextInput
-                  style={styles.postInput}
-                  placeholder="Share your thoughts..."
+                  style={[styles.postInput, { color: theme.text, backgroundColor: theme.background, borderColor: theme.border }]}
+                  placeholder={postType === 'Feedback' ? 'Share your thoughts...' : 'Describe your complaint...'}
                   multiline
                   value={newPost}
                   onChangeText={setNewPost}
-                  placeholderTextColor={COLORS.textLight}
+                  placeholderTextColor={theme.textLight}
                   autoFocus
                 />
 
@@ -183,13 +193,13 @@ const Feedback = () => {
                     style={[styles.modalButton, styles.cancelButton]}
                     onPress={() => setShowNewPostModal(false)}
                   >
-                    <Text style={styles.cancelButtonText}>Cancel</Text>
+                    <Text style={[styles.cancelButtonText, { color: theme.text }]}>Cancel</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
-                    style={[styles.modalButton, styles.postButton]}
+                    style={[styles.modalButton, styles.postButton, { backgroundColor: theme.primary }]}
                     onPress={handlePost}
                   >
-                    <Text style={styles.postButtonText}>Submit</Text>
+                    <Text style={[styles.postButtonText, { color: theme.white }]}>Submit</Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -204,7 +214,6 @@ const Feedback = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
   },
   header: {
     padding: 20,
@@ -213,13 +222,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: COLORS.text,
     marginBottom: 16,
   },
   newPostButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.primary,
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
@@ -228,7 +235,6 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   newPostButtonText: {
-    color: COLORS.white,
     marginLeft: 8,
     fontWeight: '600',
   },
@@ -237,11 +243,9 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   postCard: {
-    backgroundColor: COLORS.white,
     borderRadius: 16,
     padding: 16,
     marginBottom: 16,
-    shadowColor: COLORS.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -263,11 +267,9 @@ const styles = StyleSheet.create({
   userName: {
     fontSize: 16,
     fontWeight: '600',
-    color: COLORS.text,
   },
   timestamp: {
     fontSize: 12,
-    color: COLORS.textLight,
   },
   typeBadge: {
     paddingHorizontal: 12,
@@ -275,13 +277,11 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   typeText: {
-    color: COLORS.white,
     fontSize: 12,
     fontWeight: '500',
   },
   postContent: {
     fontSize: 16,
-    color: COLORS.text,
     lineHeight: 24,
   },
   modalContainer: {
@@ -294,7 +294,6 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: COLORS.white,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: 20,
@@ -309,18 +308,15 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: COLORS.text,
   },
   closeButton: {
     padding: 4,
   },
   postInput: {
-    backgroundColor: COLORS.background,
     borderRadius: 12,
     padding: 16,
     minHeight: 120,
     textAlignVertical: 'top',
-    color: COLORS.text,
     fontSize: 16,
   },
   modalActions: {
@@ -335,17 +331,13 @@ const styles = StyleSheet.create({
     marginLeft: 12,
   },
   cancelButton: {
-    backgroundColor: COLORS.background,
   },
   postButton: {
-    backgroundColor: COLORS.primary,
   },
   cancelButtonText: {
-    color: COLORS.text,
     fontWeight: '600',
   },
   postButtonText: {
-    color: COLORS.white,
     fontWeight: '600',
   },
 });
